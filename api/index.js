@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
@@ -47,16 +49,18 @@ app.get('/api/health', (req, res) => {
   return res.status(200).json({ status: 'ok' });
 });
 
-// 정적 파일 제공 (index.html)
-app.use(express.static('.'));
-
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/../index.html');
+  const htmlPath = path.join(__dirname, '../index.html');
+  const html = fs.readFileSync(htmlPath, 'utf8');
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.use((req, res) => {
+  const htmlPath = path.join(__dirname, '../index.html');
+  const html = fs.readFileSync(htmlPath, 'utf8');
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
 });
 
 module.exports = app;

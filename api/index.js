@@ -24,7 +24,7 @@ app.post('/api/analyze', async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
     const prompt = `다음 고객 피드백을 분석하여 아래 계약에 따라 정확히 출력해주세요:
 1. 유형: 버그 / 기능 요청 / 문의 중 하나

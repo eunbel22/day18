@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고객 피드백 분석 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-box {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.6;
+            color: #333;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .error-box {
+            background: #fee;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+            color: #c0392b;
+            font-size: 14px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 고객 피드백 분석</h1>
+        <p class="subtitle">AI가 고객 피드백을 자동으로 분석해드립니다</p>
+
+        <div class="form-group">
+            <label for="feedback">고객 피드백을 입력하세요</label>
+            <textarea id="feedback" placeholder="예: 앱이 자꾸 튕겨서 불편해요..."></textarea>
+        </div>
+
+        <button onclick="analyzeFeedback()">분석하기</button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">분석 중입니다...</div>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <h2 style="margin-bottom: 15px; color: #333;">📊 분석 결과</h2>
+            <div class="result-box" id="resultBox"></div>
+        </div>
+
+        <div id="errorSection"></div>
+    </div>
+
+    <script>
+        const baseUrl = window.location.origin;
+
+        async function analyzeFeedback() {
+            const feedback = document.getElementById('feedback').value.trim();
+            const resultSection = document.getElementById('resultSection');
+            const errorSection = document.getElementById('errorSection');
+            const loading = document.getElementById('loading');
+
+            if (!feedback) {
+                errorSection.innerHTML = '<div class="error-box">피드백을 입력해주세요</div>';
+                errorSection.style.marginTop = '20px';
+                resultSection.classList.remove('show');
+                return;
+            }
+
+            loading.classList.add('show');
+            resultSection.classList.remove('show');
+            errorSection.innerHTML = '';
+
+            try {
+                const response = await fetch(`${baseUrl}/api/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ feedback })
+                });
+
+                const data = await response.json();
+
+                loading.classList.remove('show');
+
+                if (response.ok) {
+                    document.getElementById('resultBox').textContent = data.result;
+                    resultSection.classList.add('show');
+                    errorSection.innerHTML = '';
+                } else {
+                    errorSection.innerHTML = `<div class="error-box" style="margin-top: 20px;">${data.error}</div>`;
+                }
+            } catch (error) {
+                loading.classList.remove('show');
+                errorSection.innerHTML = `<div class="error-box" style="margin-top: 20px;">요청 중 오류가 발생했습니다: ${error.message}</div>`;
+            }
+        }
+
+        document.getElementById('feedback').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                analyzeFeedback();
+            }
+        });
+    </script>
+</body>
+</html>
